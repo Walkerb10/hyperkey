@@ -7,7 +7,7 @@ Hold Caps Lock + any key to control windows, launch apps, manage clipboard, run 
 ## Install
 
 ```bash
-git clone https://github.com/meopinc/hyperkey.git
+git clone https://github.com/Walkerb10/hyperkey.git
 cd hyperkey
 bash install/install.sh
 ```
