@@ -340,6 +340,63 @@ hs.hotkey.bind(hyper, "`", function()
 end)
 
 -- ============================================================================
+-- MODULE: HTTP Bridge (run locally too for cross-machine calls)
+-- ============================================================================
+local bridge = dofile(hs.configdir .. "/modules/http-bridge.lua")
+bridge.start()
+
+-- ============================================================================
+-- MODULE: Remote Control (call Mac Mini from here)
+-- ============================================================================
+local remote = dofile(hs.configdir .. "/modules/remote.lua")
+
+-- Hyper + B = brain sync + deploy on Mac Mini
+hs.hotkey.bind(hyper, "b", function()
+  hs.notify.show("HyperKey", "", "Syncing brain on Mini...")
+  remote.run("mini", "cd ~/meop-brain && git pull --rebase && git push", function(data, err)
+    if err then
+      hs.notify.show("HyperKey", "Sync Failed", err)
+    else
+      hs.notify.show("HyperKey", "Brain Synced", (data.output or ""):sub(1, 100))
+    end
+  end)
+end)
+
+-- Hyper + G = Mac Mini health check
+hs.hotkey.bind(hyper, "g", function()
+  remote.health("mini", function(data, err)
+    if err then
+      hs.notify.show("HyperKey", "Mini Offline", err)
+    else
+      local h = data.health or {}
+      local msg = string.format("node:%s ollama:%s disk:%s",
+        h.node or "?", h.ollama or "?", h.diskUsage or "?")
+      hs.notify.show("HyperKey", "Mac Mini Health", msg)
+    end
+  end)
+end)
+
+-- Hyper + I = Mac Mini status
+hs.hotkey.bind(hyper, "i", function()
+  remote.status("mini", function(data, err)
+    if err then
+      hs.notify.show("HyperKey", "Mini Offline", tostring(err))
+    else
+      hs.notify.show("HyperKey", "Mac Mini", data.uptime or "unknown")
+    end
+  end)
+end)
+
+-- ============================================================================
+-- MODULE: Context-Aware Modes
+-- ============================================================================
+local ctx = dofile(hs.configdir .. "/modules/context-aware.lua")
+ctx.onModeChange(function(mode)
+  hs.notify.show("HyperKey", "Mode: " .. mode, "")
+end)
+ctx.start()
+
+-- ============================================================================
 -- STARTUP
 -- ============================================================================
 
